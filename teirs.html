@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>俄罗斯方块</title>
+<style>
+	.container{
+		position: relative;
+		margin: 0 auto;
+		padding: 0;
+		width: 400px;
+		height: 560px;
+		border: 5px solid #333;
+		background: #ccc;
+	}
+	.container .bg{
+		list-style: none;
+		width: 100%;
+		height: 100%;
+		padding: 0;
+		margin: 0;
+	}
+	.container .bg li{
+		float: left;
+		width: 36px;
+		height: 36px;
+		background: #aaa;
+		border: 2px solid #ccc;
+	}
+	#start{
+		position: absolute;
+		left: 100px;
+		top: 200px;
+		text-align: center;
+		background-color: #567;
+		width: 200px;
+		height: 50px;
+		line-height: 50px;
+		cursor: pointer;
+	}
+	.board{
+		position: absolute;
+		width: 100px;
+		height: 100px;
+		left: 440px;
+		top: 50px;
+	}
+	button{
+		cursor: pointer;
+	};
+</style>
+</head>
+<body>
+	<div class="container">
+		<ul class='bg' id="bg"></ul>
+		<div id="start">开始游戏</div>
+		<div class="board">
+			<button id="pause">暂停</button><br><br>
+			<button id="continu">继续</button>
+			<h3>得分: <span class='span'>0</span></h3>
+		</div>
+	</div>
+</body>
+<script src="//cdn.bootcss.com/jquery/3.1.0/jquery.min.js"></script>
+<script>
+	var ul=document.getElementById('bg');
+	for(var i=0;i<140;i++){
+		var li=document.createElement('li');
+		ul.appendChild(li);
+	}
+	var unit=document.getElementsByTagName('li');
+	$('#start').on('click',function(){
+		$(this).css('display','none');
+		play();
+		game=setInterval('down()',1000);
+	});
+	$('#pause').on('click',function(){
+		clearInterval(game);
+		$('#start').html('游戏暂停中。。').css('display','block');
+	})
+	$('#continu').on('click',function(){
+		game=setInterval('down()',1000);
+		$('#start').css('display','none');
+	})
+	var game;
+	var record=0;
+	var i=[];//存储当前方块所在含的li标签
+	var shape=[ZhengFangXing,ChangFangXing,QuZhe,Qi,DaoQi,Tu];
+	var record_shape;//记录当前方块是什么形状
+	var shape_number;//变形到第几步了
+	var finish_row=0;//判断消失了几行
+	var	finish_row_num=0;//判断从第几行开始消失
+	function ZhengFangXing(){
+		i[0]=4;
+		i[1]=5;
+		i[2]=14;
+		i[3]=15;
+		record_shape=1;
+	}
+	function ChangFangXing(){
+		i[0]=4;
+		i[1]=14;
+		i[2]=24;
+		i[3]=34;
+		record_shape=2;
+	}
+	function QuZhe(){
+		i[0]=4;
+		i[1]=5;
+		i[2]=15;
+		i[3]=16;
+		record_shape=3;
+	}
+	function Qi(){
+		i[0]=4;
+		i[1]=5;
+		i[2]=15;
+		i[3]=25;
+		record_shape=4;
+	}
+	function DaoQi(){
+		i[0]=5;
+		i[1]=15;
+		i[2]=25;
+		i[3]=24;
+		record_shape=5;
+	}
+	function Tu(){
+		i[0]=4;
+		i[1]=13;
+		i[2]=14;
+		i[3]=15;
+		record_shape=6;
+	}
+	function play(){
+		var number=(Math.random()*6|0);
+		shape[number]();
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#111";
+		}
+		shape_number=1;
+	}
+	function down(){
+		for(var j=0;j<4;j++){
+			if(i[j]>129 || unit[i[j]+10].style.background=='black'){
+				for(var k=0;k<4;k++){
+					unit[i[k]].style.background='black';
+				}
+				check();
+				//console.log(p);
+				for(var n=finish_row_num;n>0;n--){
+					if(unit[n].style.background=="black"){
+						unit[n].style.background="#aaa";
+						unit[n+finish_row*10].style.background="black";
+					}
+				}
+				record+=finish_row*10;
+				$('.span').html(record);
+				play();
+				return;
+			}
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#aaa";
+			i[j]+=10;
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#111";
+		}
+	}
+	function left(){
+		for(var j=0;j<4;j++){
+			if(i[j]%10==0 || unit[i[j]-1].style.background=='black'){
+				return;
+			}
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#aaa";
+			i[j]-=1;
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#111";
+		}
+	}
+	function right(){
+		for(var j=0;j<4;j++){
+			if((i[j]+1)%10==0 || unit[i[j]+1].style.background=='black'){
+				return;
+			}
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#aaa";
+			i[j]+=1;
+		}
+		for(var j=0;j<4;j++){
+			unit[i[j]].style.background="#111";
+		}
+	}
+	function changeShape(){
+		switch(record_shape){
+			case 1:return;break;
+			case 2:(function(){
+				if(shape_number==1){
+					for(var j=0;j<4;j++){
+						if(unit[i[j]+3].style.background=="black" || unit[i[j]-1].style.background=="black" || (i[j]+4)%10==0 || (i[j]-1)%10==0)
+							return;
+					}
+					unit[i[0]].style.background='#aaa';
+					unit[i[1]].style.background='#aaa';
+					unit[i[3]].style.background='#aaa';
+					i[0]=i[0]+22;
+					i[1]=i[1]+11;
+					i[3]=i[3]-11;
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=2;
+					return;
+				}
+				if(shape_number==2){
+					for(var j=0;j<4;j++){
+						if(unit[i[j]-30].style.background=="black" || unit[i[j]+10].style.background=="black" || (i[j]+10) > 129)
+							return;
+					}
+					unit[i[0]].style.background='#aaa';
+					unit[i[1]].style.background='#aaa';
+					unit[i[3]].style.background='#aaa';
+					i[0]=i[0]-22;
+					i[1]=i[1]-11;
+					i[3]=i[3]+11;
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=1;
+					return;
+				}
+			})();break;
+			case 3:(function(){
+				if(shape_number==1){
+					for(var j=0;j<4;j++){
+						if(unit[i[j]+10].style.background=="black" || (i[j]+10) > 129)
+							return;
+					}
+					unit[i[3]].style.background='#aaa';
+					unit[i[1]].style.background='#aaa';
+					unit[i[0]].style.background='#aaa';
+					i[3]=i[3]+8;
+					i[1]=i[1]+9;
+					i[0]=i[0]+1;
+					unit[i[3]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[0]].style.background='#111';
+					shape_number=2;
+					return;
+				}
+				if(shape_number==2){
+					for(var j=0;j<4;j++){
+						if(unit[i[j]+1].style.background=="black" || (i[j]+1)%10==0)
+							return;
+					}
+					unit[i[3]].style.background='#aaa';
+					unit[i[1]].style.background='#aaa';
+					unit[i[0]].style.background='#aaa';
+					i[3]=i[3]-8;
+					i[1]=i[1]-9;
+					i[0]=i[0]-1;
+					unit[i[3]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[0]].style.background='#111';
+					shape_number=1;
+					return;
+				}
+			})();break;
+			case 4:(function(){
+				unit[i[0]].style.background='#aaa';
+				unit[i[1]].style.background='#aaa';
+				unit[i[2]].style.background='#aaa';
+				unit[i[3]].style.background='#aaa';
+				if(shape_number==1){
+					i[0]=i[0]+11;
+					i[1]=i[1]+20;
+					i[2]=i[2]+9;
+					i[3]=i[3]-2;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=2;
+					return;
+				}
+				if(shape_number==2){
+					i[0]=i[0]+10;
+					i[1]=i[1]-1;
+					i[2]=i[2]-10;
+					i[3]=i[3]-19;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=3;
+					return;
+				}
+				if(shape_number==3){
+					i[0]=i[0]-12;
+					i[1]=i[1]-21;
+					i[2]=i[2]-10;
+					i[3]=i[3]+1;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black"  )
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=4;
+					return;
+				}
+				if(shape_number==4){
+					i[0]=i[0]-9;
+					i[1]=i[1]+2;
+					i[2]=i[2]+11;
+					i[3]=i[3]+20;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black" )
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=1;
+					return;
+				}
+			})();break;
+			case 5:(function(){
+				unit[i[0]].style.background='#aaa';
+				unit[i[1]].style.background='#aaa';
+				unit[i[2]].style.background='#aaa';
+				unit[i[3]].style.background='#aaa';
+				if(shape_number==1){
+					i[0]=i[0]+21;
+					i[1]=i[1]+10;
+					i[2]=i[2]-1;
+					i[3]=i[3]-10;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=2;
+					return;
+				}
+				if(shape_number==2){
+					i[0]=i[0]-2;
+					i[1]=i[1]-11;
+					i[2]=i[2]-20;
+					i[3]=i[3]-9;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=3;
+					return;
+				}
+				if(shape_number==3){
+					i[0]=i[0]-20;
+					i[1]=i[1]-9;
+					i[2]=i[2]+2;
+					i[3]=i[3]+11;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=4;
+					return;
+				}
+				if(shape_number==4){
+					i[0]=i[0]+1;
+					i[1]=i[1]+10;
+					i[2]=i[2]+19;
+					i[3]=i[3]+8;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=1;
+					return;
+				}
+			})();break;
+			case 6:(function(){
+				unit[i[0]].style.background='#aaa';
+				unit[i[1]].style.background='#aaa';
+				unit[i[2]].style.background='#aaa';
+				unit[i[3]].style.background='#aaa';
+				if(shape_number==1){
+					i[0]=i[0]+11;
+					i[1]=i[1]-9;
+					i[3]=i[3]+9;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=2;
+					return;
+				}
+				if(shape_number==2){
+					i[0]=i[0]+9;
+					i[1]=i[1]+11;
+					i[3]=i[3]-11;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black")
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=3;
+					return;
+				}
+				if(shape_number==3){
+					i[0]=i[0]-11;
+					i[1]=i[1]+9;
+					i[3]=i[3]-9;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black"  )
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=4;
+					return;
+				}
+				if(shape_number==4){
+					i[0]=i[0]-9;
+					i[1]=i[1]-11;
+					i[3]=i[3]+11;
+					for(var j=0;j<4;j++){
+						if(unit[i[j]].style.background=="black" || (i[j]) > 129)
+							return;
+					};
+					unit[i[0]].style.background='#111';
+					unit[i[1]].style.background='#111';
+					unit[i[2]].style.background='#111';
+					unit[i[3]].style.background='#111';
+					shape_number=1;
+					return;
+				}
+			})();break;
+		}
+	}
+	
+	document.onkeydown=function(e){
+		var keyvalue=e.keyCode;
+		switch(keyvalue){
+			case 37: left();break;
+			case 39: right();break;
+			case 40: down();break;
+			case 38: changeShape();break;
+			default: console.log('hahaha');break;
+		}
+	}
+	function check(){
+		finish_row=0;
+		finish_row_num=0;
+		for(var j=0;j<10;j++){
+			if(unit[j].style.background=="black"){
+				alert('你失败了！');
+				window.location.reload();
+			}
+		}
+		for(var n=130;n>0;){
+			var m=0;
+			for(var j=0;j<10;j++){
+				if(unit[n+j].style.background=="black")
+					{m++;}
+			}
+			if(m==10){
+				finish_row_num=n;
+				finish_row++;
+				for(var j=0;j<10;j++){
+					unit[n+j].style.background="#aaa";
+				}
+			}
+			n-=10;
+		}
+	}
+</script>
+</html>
